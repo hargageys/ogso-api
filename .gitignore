@@ -1,0 +1,6 @@
+.env
+venv/
+__pycache__/
+*.pyc
+ogso_research.db
+.env.local
