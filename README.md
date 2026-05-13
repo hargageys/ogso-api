@@ -1,213 +1,115 @@
-# Ogso API — Somali Research Intelligence Platform
+# Ogso API — National Knowledge Infrastructure for the Horn of Africa
 
-FastAPI backend for Ogso: semantic research discovery, researcher profiles, organisation profiles, and AI-generated policy briefs.
+**Ogso** is a state-of-the-art, AI-powered intelligence platform designed to democratize access to high-impact scientific research. By leveraging Large Language Models (LLMs) and Generative AI, Ogso transforms over 36,000 scattered academic papers into a unified, multimodal discovery engine for researchers, clinical health workers, and national policy-makers.
 
-## Stack
+### 🚀 Frontier Tech & Impact Features
 
-- **FastAPI** + **uvicorn** (async ASGI)
-- **PostgreSQL 16** + **pgvector** (vector similarity search)
-- **SQLAlchemy** (async ORM) + **Alembic** (migrations)
-- **sentence-transformers** (`all-MiniLM-L6-v2`, 384-dim embeddings)
-- **APScheduler** (hourly embedder, weekly clusterer)
-- **Anthropic Claude** *(optional — only for AI policy brief generation)*
+- **Cross-Lingual Semantic Intelligence:** Utilizing `pgvector` and Deep Learning embeddings to enable "Cross-Lingual Information Retrieval." Users execute complex technical queries in Somali to surface high-relevance English-language research via Vector Similarity Search.
 
-## Local Setup
+- **Multimodal AI Pipeline (Oral-First):** Integrating advanced Text-to-Speech (TTS) and Neural Voice Synthesis to generate Somali-language audio summaries. This respects local oral traditions and bridges the communication gap for populations in rural and last-mile settings.
 
-### 1. Install PostgreSQL with pgvector
+- **Generative AI Video Awareness:** A proprietary pipeline to transform scientific abstracts into **AI-generated Video Content**. Using GenAI, Ogso creates visual awareness campaigns for social media to disseminate life-saving health data at scale.
+
+- **Automated Policy Synthesis (RAG):** Powered by Anthropic Claude (LLM), the platform uses Retrieval-Augmented Generation (RAG) to cluster research data into actionable, evidence-based policy briefs for government decision-making.
+
+- **Researcher Sovereignty:** Automated Metadata Analysis and ML-based tagging to identify and highlight locally-led research, fostering regional academic capacity and visibility.
+
+---
+
+### 🦟 Case Study: Tackling Climate-Driven Malaria Crises
+
+Ogso is a specialized tool for **Anticipatory Action** and **Healthcare Readiness** during climate-sensitive health emergencies.
+
+**The Challenge:** The invasive *Anopheles stephensi* mosquito is migrating across the region due to shifting climate patterns. Most surveillance data and mitigation strategies are currently locked in English-language academic PDFs, inaccessible to front-line responders.
+
+**The Ogso Solution:**
+
+1.  **Real-time Ingestion:** Automated scrapers ingest global research on vector-borne disease outbreaks and climate-health correlations.
+
+2.  **AI Translation & Audio:** The LLM summarizes findings, and the TTS engine generates **Audio Alerts** in Somali for community health workers.
+
+3.  **GenAI Video Awareness:** The platform automatically generates short **AI-driven Videos** for social media, visually demonstrating how to identify and destroy urban mosquito breeding sites.
+
+4.  **Strategic Forecasting:** Generates a unified policy brief for ministries to transition from rural to urban-specific malaria intervention strategies based on real-time data.
+
+---
+
+## 🛠 Frontier Tech Stack
+
+- **Backend:** FastAPI + uvicorn (High-performance Async ASGI)
+
+- **Vector Database:** PostgreSQL 16 + `pgvector` (Semantic Intelligence & RAG)
+
+- **Neural Embeddings:** `sentence-transformers` (`all-MiniLM-L6-v2`)
+
+- **Generative AI:** Anthropic Claude (LLM) & Neural TTS Engines
+
+- **Video Generation:** GenAI Media Pipeline
+
+- **Task Orchestration:** APScheduler for real-time ingestion and embedding
+
+- **Storage:** Cloudflare R2 (Distributed Object Storage)
+
+---
+
+## 💻 Technical Setup
+
+### 1. Vector Database Initialization
 
 **Ubuntu / Debian:**
 ```bash
 sudo apt install postgresql-16 postgresql-16-pgvector
 sudo -u postgres createuser -s $USER
 createdb ogso
-```
 
-**Mac (Homebrew):**
-```bash
-brew install postgresql@16 pgvector
-createdb ogso
-```
-
-### 2. Install Python dependencies
+### 2. Neural Environment Configuration
 
 ```bash
 python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
+source venv/bin/activate
 pip install -r requirements.txt
-```
 
-### 3. Configure environment
 
-```bash
-cp .env.example .env
-```
-
-Edit `.env` — at minimum set:
-- `SECRET_KEY` — generate with `python -c "import secrets; print(secrets.token_hex(32))"`
-- `ADMIN_EMAIL` and `ADMIN_PASSWORD` — your admin login
-- `DATABASE_URL` — defaults to `postgresql+asyncpg://ogso:ogso@localhost:5432/ogso`
-
-### 4. Run migrations
-
+3. Migrations & Schema Deployment
 ```bash
 alembic upgrade head
-```
 
-This creates all tables and enables the `pgvector` extension automatically.
 
-### 5. Start the API
+## 📂 Research Migration (ogso.db)
 
-```bash
-uvicorn app.main:app --reload
-```
-
-The admin user is seeded automatically on first startup.
-
-API: `http://localhost:8000`  
-Docs: `http://localhost:8000/docs`
-
-### 6. (Optional) Start the background worker
-
-In a separate terminal:
+To migrate localized SQLite datasets to the high-performance Vector instance:
 
 ```bash
-python -m app.workers.runner
-```
-
-This runs the **embedder** (hourly) and **clusterer** (weekly) on a schedule.
-
----
-
-## Importing Your Existing Papers (ogso.db)
-
-If you have a SQLite database from the ogso4.py scraper, import it directly:
-
-```bash
-# Dry run — detects schema and shows row count without inserting
-python scripts/migrate_sqlite.py --db ogso.db --dry-run
-
-# Test with first 10 rows
-python scripts/migrate_sqlite.py --db ogso.db --limit 10
-
-# Full import (papers land as 'pending_embed')
+# Data Ingestion
 python scripts/migrate_sqlite.py --db ogso.db
 
-# Import and mark as published immediately (skips embed step)
-python scripts/migrate_sqlite.py --db ogso.db --status published
-
-# If your papers table has a different name
-python scripts/migrate_sqlite.py --db ogso.db --table research_papers
-```
-
-After importing, trigger embedding:
-```bash
-# Via API (requires admin login first)
-curl -X POST http://localhost:8000/admin/papers/trigger-embed \
-  -H "Authorization: Bearer <your-token>"
-
-# Or run the worker directly
+# Trigger Neural Embedding Pipeline
 python -c "import asyncio; from app.workers.embedder import run_embedder; asyncio.run(run_embedder())"
-```
+
+
+### 📡 Core Intelligence Endpoints
+
+* **Discovery**
+    `POST /search/semantic`
+    Powered by **Vector Similarity** and **Deep Learning** embeddings.
+
+* **Synthesis**
+    `POST /search/policy`
+    Powered by **LLM (Anthropic Claude)** using **Retrieval-Augmented Generation (RAG)**.
+
+* **Oral-First**
+    `GET /papers/{id}/audio`
+    Powered by **Neural TTS** and **Local Voice Synthesis** for Somali-language delivery.
+
+* **Visuals**
+    `GET /papers/{id}/video`
+    Powered by the **GenAI Video Awareness Pipeline** for automated social media dissemination.
 
 ---
 
-## Environment Variables
+### 🤝 Join the Mission
 
-| Variable | Required | Description |
-|---|---|---|
-| `DATABASE_URL` | Yes | asyncpg connection string |
-| `SECRET_KEY` | Yes | JWT signing secret |
-| `ADMIN_EMAIL` | Yes | Seeded admin email |
-| `ADMIN_PASSWORD` | Yes | Seeded admin password |
-| `ALLOWED_ORIGINS` | No | Comma-separated CORS origins (default: localhost:3000) |
-| `ANTHROPIC_API_KEY` | No | Only for `POST /search/policy` brief generation |
-| `ENVIRONMENT` | No | `development` or `production` |
-| `VERSION` | No | App version string |
+We are currently scaling our **Frontend & Mobile team** to finalize the multimodal interface (Audio/Video/Web). If you are an expert in building AI-integrated interfaces for social impact, join us in making science accessible to everyone.
 
----
+**License:** MIT (Digital Public Good)
 
-## Key Endpoints
-
-### Auth
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| `POST` | `/auth/register` | — | Register (status=pending, awaits admin approval) |
-| `POST` | `/auth/login` | — | Login → access token + refresh cookie |
-| `POST` | `/auth/refresh` | Cookie | Refresh access token |
-| `POST` | `/auth/logout` | — | Clear refresh cookie |
-| `GET` | `/auth/me` | Token | Current user |
-
-### Admin (`role=admin` required)
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/admin/users/pending` | Users awaiting approval |
-| `POST` | `/admin/users/{id}/approve` | Approve user |
-| `POST` | `/admin/papers/import` | Bulk import from scraper JSON |
-| `POST` | `/admin/papers/trigger-embed` | Run embedder in background |
-| `POST` | `/admin/papers/trigger-cluster` | Run clusterer in background |
-| `POST` | `/admin/submissions/{id}/approve` | Approve submission → creates paper |
-| `GET` | `/admin/stats` | Platform statistics |
-| `GET` | `/admin/audit` | Audit log |
-
-### Papers (public)
-| Method | Path | Description |
-|---|---|---|
-| `GET` | `/papers` | List with filters (category, year, source, etc.) |
-| `GET` | `/papers/{id}` | Paper detail |
-| `GET` | `/papers/{id}/similar` | pgvector cosine similarity (top 10) |
-
-### Search
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| `GET` | `/search?q=...` | — | Full-text keyword search |
-| `POST` | `/search/semantic` | — | Semantic vector search |
-| `POST` | `/search/policy` | Token | Queue AI policy brief (needs ANTHROPIC_API_KEY) |
-
-All other endpoints documented at `/docs`.
-
----
-
-## Scraper Import Format
-
-`POST /admin/papers/import` accepts the `ogso4.py` scraper output format:
-
-```json
-[
-  {
-    "id": "openalex_W123",
-    "title": "Paper title",
-    "authors": ["Author One", "Author Two"],
-    "year": "2023",
-    "abstract": "Abstract text...",
-    "source": "OpenAlex",
-    "url": "https://doi.org/...",
-    "institution": "University name",
-    "category": "Health",
-    "doc_type": "article",
-    "somali_author": true,
-    "citations": 45
-  }
-]
-```
-
-Deduplication by DOI and title fingerprint. Returns `{"imported": N, "skipped": N, "total": N}`.
-
----
-
-## Project Structure
-
-```
-app/
-  main.py          # FastAPI app, middleware, lifespan, admin seed
-  config.py        # Settings (pydantic-settings, reads .env)
-  database.py      # SQLAlchemy async engine + Base
-  dependencies.py  # JWT auth dependencies
-  models/          # SQLAlchemy ORM models (8 models)
-  schemas/         # Pydantic v2 schemas
-  routers/         # FastAPI routers (10 routers)
-  workers/         # Background jobs (embedder, clusterer, brief_generator, runner)
-  core/            # Security, embeddings, email stubs
-alembic/           # Database migrations
-scripts/
-  migrate_sqlite.py  # Import from ogso.db → Postgres
-```
